@@ -1,0 +1,43 @@
+{{- if .Values.testapp.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.testapp.service.annotations }}
+  annotations:
+{{ toYaml .Values.testapp.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    {{- include "maira.testapp.labels" . | nindent 4 }}
+{{- if .Values.testapp.service.labels }}
+{{ toYaml .Values.testapp.service.labels | indent 4 }}
+{{- end }}
+  name: {{ template "maira.testapp.fullname" . }}
+spec:
+{{- if .Values.testapp.service.clusterIP }}
+  clusterIP: {{ .Values.testapp.service.clusterIP }}
+{{- end }}
+{{- if .Values.testapp.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.testapp.service.externalIPs | indent 4 }}
+{{- end }}
+{{- if .Values.testapp.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.testapp.service.loadBalancerIP }}
+{{- end }}
+{{- if .Values.testapp.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $cidr := .Values.testapp.service.loadBalancerSourceRanges }}
+    - {{ $cidr }}
+  {{- end }}
+{{- end }}
+  ports:
+    - name: testapp
+      {{- if .Values.testapp.service.servicePort }}
+      port: {{ .Values.testapp.service.servicePort }}
+      {{- end }}
+      protocol: TCP
+      targetPort: 5000
+    {{- if .Values.testapp.service.nodePort }}
+      nodePort: {{ .Values.testapp.service.nodePort }}
+    {{- end }}
+  type: {{ .Values.testapp.service.type }}
+{{- end -}}

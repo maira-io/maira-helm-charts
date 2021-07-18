@@ -1,0 +1,7 @@
+apiVersion: v1
+appVersion: "1.0"
+description: Maira services helm chart
+name: maira
+version: 0.1.0
+
+home: https://maira.io/
