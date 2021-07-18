@@ -1,0 +1,38 @@
+{{- if $.Values.cloud_worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "maira.cloud_worker.fullname" . }}
+  labels:
+{{ include "maira.cloud_worker.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.cloud_worker.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "maira.cloud_worker.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "maira.cloud_worker.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "maira.serviceAccountName" . }}
+      containers:
+      - name:  cloud-worker
+        image: "{{ .Values.cloud_worker.image.repository }}:{{ .Values.cloud_worker.image.tag }}"
+        env:
+          - name: SERVER_HOST_PORT
+            value: "{{ .Values.cloud_worker.temporal.host }}:{{ .Values.cloud_worker.temporal.port }}"
+          - name: CONFIRMATION_SERVER
+            value: "{{ .Values.cloud_worker.confirmation.host }}:{{ .Values.cloud_worker.confirmation.port }}"
+          - name: EMAIL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "{{ template "maira.cloud_worker.fullname" . }}-secret"
+                key: email_password
+{{- end }}

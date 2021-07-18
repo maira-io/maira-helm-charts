@@ -1,0 +1,43 @@
+{{- if .Values.api.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.api.service.annotations }}
+  annotations:
+{{ toYaml .Values.api.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    {{- include "maira.api.labels" . | nindent 4 }}
+{{- if .Values.api.service.labels }}
+{{ toYaml .Values.api.service.labels | indent 4 }}
+{{- end }}
+  name: {{ template "maira.api.fullname" . }}
+spec:
+{{- if .Values.api.service.clusterIP }}
+  clusterIP: {{ .Values.api.service.clusterIP }}
+{{- end }}
+{{- if .Values.api.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.api.service.externalIPs | indent 4 }}
+{{- end }}
+{{- if .Values.api.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.api.service.loadBalancerIP }}
+{{- end }}
+{{- if .Values.api.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $cidr := .Values.api.service.loadBalancerSourceRanges }}
+    - {{ $cidr }}
+  {{- end }}
+{{- end }}
+  ports:
+    - name: api
+      {{- if .Values.api.service.servicePort }}
+      port: {{ .Values.api.service.servicePort }}
+      {{- end }}
+      protocol: TCP
+      targetPort: 11000
+    {{- if .Values.api.service.nodePort }}
+      nodePort: {{ .Values.api.service.nodePort }}
+    {{- end }}
+  type: {{ .Values.api.service.type }}
+{{- end -}}
