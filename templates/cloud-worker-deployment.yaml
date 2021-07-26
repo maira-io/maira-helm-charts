@@ -22,12 +22,21 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       serviceAccountName: {{ template "maira.serviceAccountName" . }}
+      {{- if $.Values.cloud_worker.temporal.namespace.createIfNotPresent }}
+      initContainers:
+      - name: init-temporal-namespace
+        image: "{{ .Values.cloud_worker.temporal.namespace.image.repository }}:{{ .Values.cloud_worker.temporal.namespace.image.tag }}"
+        command: ['sh', '-xc', "tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc  || (tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace register && tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc)"]
+        env:
+        - name: TEMPORAL_CLI_ADDRESS
+          value: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
+      {{- end }}
       containers:
       - name:  cloud-worker
         image: "{{ .Values.cloud_worker.image.repository }}:{{ .Values.cloud_worker.image.tag }}"
         env:
           - name: SERVER_HOST_PORT
-            value: "{{ .Values.cloud_worker.temporal.host }}:{{ .Values.cloud_worker.temporal.port }}"
+            value: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
           - name: CONFIRMATION_SERVER
             value: "{{ .Values.cloud_worker.confirmation.host }}:{{ .Values.cloud_worker.confirmation.port }}"
           - name: EMAIL_PASSWORD

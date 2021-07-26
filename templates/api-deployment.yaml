@@ -25,4 +25,25 @@ spec:
       containers:
       - name:  api
         image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+        command: ["/apiserver"]
+        args: ["-c", "/config/config.yml"]
+        volumeMounts:
+        - name: tls-cert
+          mountPath: "/certs"
+          readOnly: true
+        - name: config-yml
+          mountPath: "/config"
+          readOnly: true
+      volumes:
+      - name: tls-cert
+        secret:
+          secretName: "{{ template "maira.api.fullname" . }}-secret"
+          items:
+            - key: tls.key
+              path: server.key
+            - key: tls.crt
+              path: server.crt
+      - name: config-yml
+        configMap:
+          name: "{{ template "maira.api.fullname" . }}-config"
 {{- end }}

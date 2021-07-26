@@ -1,0 +1,17 @@
+{{- if $.Values.api.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ template "maira.api.fullname" . }}-config"
+  labels:
+{{ include "maira.api.labels" . | indent 4 }}
+data:
+  config.yml: |-
+    grpc_listen_addr: :8000
+    rest_listen_addr: :11000
+    db_uri: {{ .Values.api.mongodb.dbURI }}
+    max_message_size_bytes: 500000000
+    server_cert: /certs/server.crt
+    server_key: /certs/server.key
+    workflow_server: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
+{{- end }}
