@@ -26,6 +26,7 @@ affinity: {}
 temporal:
   host: temporaltest-frontend
   port: 7233
+  enabled: true
 
 api:
   enabled: true

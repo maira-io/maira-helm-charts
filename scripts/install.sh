@@ -1,15 +1,44 @@
+#!/bin/bash
+
+Help()
+{
+   # Display Help
+   echo "Install maira services and dependencies using helm"
+   echo
+   echo "Syntax: $0 -t <temporal chart path> |-e <env file>|"
+   echo "options:"
+   echo "t <temporal chart path>   Temporal helm chart path"
+   echo "e <env file>              env file path to pass environment variables"
+   echo "h                         Print this help"
+   echo
+
+   echo "Example: $0 -t /home/user/temporal-helm-chart -e sample.env"
+}
+
+while getopts e:t:h flag
+do
+    case "${flag}" in
+        e) envfile=${OPTARG};;
+        t) temporal_chart_path=${OPTARG};;
+        h)
+          Help
+          exit;;
+    esac
+done
+
 #
 set -a
 # Optional first argument to this script is an env file which
 # may used to override certain variable as mentioned below
 if [ -n "$1" ]; then
-  source $1
+  source $envfile
 fi
 
 ## One may set appropriate environment variables to overrride below entries
 CLUSTER_NAME=${CLUSTER_NAME}
 if [ -z "${CLUSTER_NAME}" ]; then
   echo "ERROR! Please set a unique CLUSTER_NAME environment variable to use for ingress name"
+  exit 1
 fi
 CASSANDRA_CLUSTER_NAME="${CASSANDRA_CLUSTER_NAME:-cluster1}"
 CASSANDRA_STORAGE_CLASS="${CASSANDRA_STORAGE_CLASS:-standard}"
@@ -22,7 +51,7 @@ CASSANDRA_CLUSTER_SIZE="${CASSANDRA_CLUSTER_SIZE:-1}"
 CASSANDRA_POD_MEMORY=${CASSANDRA_POD_MEMORY}
 CASSANDRA_POD_CPU=${CASSANDRA_POD_CPU}
 
-TEMPORAL_RELEASE_NAME="${TEMPORAL_RELEASE_NAME:-t1}"
+RELEASE_NAME="${RELEASE_NAME:-r1}"
 
 ########## One will not be able to override below variables
 CASSANDRA_ADMIN_USERNAME="cass-superuser"
@@ -44,6 +73,8 @@ TEMPORAL_VISIBILITY_KEYSPACE="temporal_visibility"
 TEMPORAL_VISIBILITY_CASSANDRA_SECRET_NAME="temporal-visibility-cassandra-secret"
 TEMPORAL_VISIBILITY_CASSANDRA_USERNAME='temporal_visibility'
 TEMPORAL_VISIBILITY_CASSANDRA_PASSWORD='' # This will be set later in the code
+
+MAIRA_NAMESPACE="maira"
 set +a
 
 # https://github.com/k8ssandra/cass-operator
@@ -55,7 +86,7 @@ install_cassandra_operator() {
 }
 
 create_temporal_ns() {
-  kubectl get namespace $TEMPORAL_NAMESPACE -o name
+  kubectl get namespace $TEMPORAL_NAMESPACE -o name 2>/dev/null
   if [[ $? -ne 0 ]]; then
     kubectl create namespace $TEMPORAL_NAMESPACE
   fi
@@ -165,9 +196,11 @@ create_temporal_keyspaces() {
 install_temporal() {
   # This should be executed from within temporal helm chart cloned directory
   # https://github.com/temporalio/helm-charts
+  pushd $temporal_chart_path
+  rm -fr charts/*
   helm dependencies update
   helm_op="install"
-  helm -n $TEMPORAL_NAMESPACE list -q | grep -q "^$TEMPORAL_RELEASE_NAME$"
+  helm -n $TEMPORAL_NAMESPACE list -q | grep -q "^$RELEASE_NAME$"
   if [ $? == 0 ]; then
     helm_op=upgrade
   fi
@@ -197,15 +230,39 @@ install_temporal() {
     --set server.config.persistence.visibility.cassandra.user=${TEMPORAL_VISIBILITY_CASSANDRA_USERNAME} \
     --set server.config.persistence.visibility.cassandra.password=${TEMPORAL_VISIBILITY_CASSANDRA_PASSWORD} \
     --set server.config.persistence.visibility.cassandra.replicationFactor=${CASSANDRA_REPLICATION_FACTOR} \
-    $TEMPORAL_RELEASE_NAME .
+    $RELEASE_NAME .
+  popd
+}
+
+install_maira() {
+  helm_op="install"
+  kubectl get ns $MAIRA_NAMESPACE -o name 2>/dev/null
+  if [[ $? -ne 0 ]]; then
+    kubectl create ns $MAIRA_NAMESPACE
+  fi
+  helm -n $MAIRA_NAMESPACE list -q | grep -q "^$RELEASE_NAME$"
+  if [ $? == 0 ]; then
+    helm_op=upgrade
+  fi
+  helm ${helm_op} -n $MAIRA_NAMESPACE \
+    --set temporal.host=${RELEASE_NAME}-temporal-frontend.${TEMPORAL_NAMESPACE} \
+    $RELEASE_NAME ../
 }
 
 main() {
+  red='\033[0;31m'
+  reset='\033[0m'
   create_temporal_ns
+  echo -e "${red}Installing cassandra operator${reset}"
   install_cassandra_operator
+  echo -e "${red}Installing cassandra cluster${reset}"
   install_cassandra_cluster
+  echo -e "${red}Creating cassandra keyspaces for temporal${reset}"
   create_temporal_keyspaces
+  echo -e "${red}Installing temporal${reset}"
   install_temporal
+  echo -e "${red}Installing maira services${reset}"
+  install_maira
 }
 
 main
