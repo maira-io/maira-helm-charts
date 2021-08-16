@@ -28,11 +28,14 @@ temporal:
   port: 7233
   enabled: true
 
+mongodb:
+  host: cluster0.aq7of.mongodb.net
+  username: maira
+  password: passw0rd
+
 api:
   enabled: true
   replicaCount: 1
-  mongodb:
-    dbURI: "mongodb+srv://maira:password1@scluster0.aq7of.mongodb.net/generated?retryWrites=true&w=majority"
   tls:
     key: |
       -----BEGIN PRIVATE KEY-----

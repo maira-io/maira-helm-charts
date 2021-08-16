@@ -5,26 +5,36 @@ Help()
    # Display Help
    echo "Install maira services and dependencies using helm"
    echo
-   echo "Syntax: $0 -t <temporal chart path> |-e <env file>|"
+   echo "Syntax: $0 -t <temporal chart path> -k <key file> -c <cert file> |-e <env file>|"
    echo "options:"
    echo "t <temporal chart path>   Temporal helm chart path"
    echo "e <env file>              env file path to pass environment variables"
+   echo "k <key file>              TLS key file path"
+   echo "c <cert file>             TLS certificate file path"
    echo "h                         Print this help"
    echo
 
-   echo "Example: $0 -t /home/user/temporal-helm-chart -e sample.env"
+   echo "Example: $0 -t /home/user/temporal-helm-chart -k key.pem -c cert.pem -e sample.env"
 }
 
-while getopts e:t:h flag
+while getopts e:t:hk:c: flag
 do
     case "${flag}" in
         e) envfile=${OPTARG};;
         t) temporal_chart_path=${OPTARG};;
+        c) cert_file=${OPTARG};;
+        k) key_file=${OPTARG};;
         h)
           Help
           exit;;
     esac
 done
+
+if [ -z "$cert_file" ] || [ -z "$key_file" ]; then
+  echo "ERROR: certificate and key file paths must be provided"
+  Help
+  exit 1
+fi
 
 #
 set -a
@@ -74,6 +84,13 @@ TEMPORAL_VISIBILITY_CASSANDRA_SECRET_NAME="temporal-visibility-cassandra-secret"
 TEMPORAL_VISIBILITY_CASSANDRA_USERNAME='temporal_visibility'
 TEMPORAL_VISIBILITY_CASSANDRA_PASSWORD='' # This will be set later in the code
 
+MONGODB_HOST="${MONGODB_HOST:-cluster0.aq7of.mongodb.net}"
+MONGODB_USERNAME="${MONGODB_USERNAME:-maira}"
+MONGODB_PASSWORD=$MONGODB_PASSWORD
+if [ -z "${MONGODB_PASSWORD}" ]; then
+  echo "ERROR! You must set mongodb password to env variable MONGODB_PASSWORD"
+  exit 1
+fi
 MAIRA_NAMESPACE="maira"
 set +a
 
@@ -245,6 +262,11 @@ install_maira() {
     helm_op=upgrade
   fi
   helm ${helm_op} -n $MAIRA_NAMESPACE \
+    --set mongodb.host=$MONGODB_HOST \
+    --set mongodb.username=$MONGODB_USERNAME \
+    --set mongodb.password=$MONGODB_PASSWORD \
+    --set api.tls.key="`cat $key_file`" \
+    --set api.tls.cert="`cat $cert_file`" \
     --set temporal.host=${RELEASE_NAME}-temporal-frontend.${TEMPORAL_NAMESPACE} \
     $RELEASE_NAME ../
 }
