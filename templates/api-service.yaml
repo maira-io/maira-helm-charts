@@ -13,6 +13,9 @@ metadata:
 {{- end }}
   name: {{ template "maira.api.fullname" . }}
 spec:
+  selector:
+    app.kubernetes.io/name: {{ template "maira.api.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Values.api.service.clusterIP }}
   clusterIP: {{ .Values.api.service.clusterIP }}
 {{- end }}

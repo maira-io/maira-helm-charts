@@ -76,7 +76,7 @@ api:
     pullPolicy: IfNotPresent
   service:
     type: LoadBalancer
-    servicePort: 11001
+    servicePort: 443
   ingress:
     enabled: false
     annotations: {}
