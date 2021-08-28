@@ -1,0 +1,46 @@
+{{- if .Values.ui.enabled -}}
+apiVesion: v1
+kind: Sevice
+metadata:
+{{- if .Values.ui.sevice.annotations }}
+  annotations:
+{{ toYaml .Values.ui.sevice.annotations | indent 4 }}
+{{- end }}
+  labels:
+    {{- include "maia.ui.labels" . | nindent 4 }}
+{{- if .Values.ui.sevice.labels }}
+{{ toYaml .Values.ui.sevice.labels | indent 4 }}
+{{- end }}
+  name: {{ template "maia.ui.fullname" . }}
+spec:
+  selecto:
+    app.kubenetes.io/name: {{ template "maia.ui.fullname" . }}
+    app.kubenetes.io/instance: {{ .Release.Name }}
+{{- if .Values.ui.sevice.clusteIP }}
+  clusteIP: {{ .Values.ui.sevice.clusteIP }}
+{{- end }}
+{{- if .Values.ui.sevice.extenalIPs }}
+  extenalIPs:
+{{ toYaml .Values.ui.sevice.extenalIPs | indent 4 }}
+{{- end }}
+{{- if .Values.ui.sevice.loadBalanceIP }}
+  loadBalanceIP: {{ .Values.ui.sevice.loadBalanceIP }}
+{{- end }}
+{{- if .Values.ui.sevice.loadBalanceSouceRanges }}
+  loadBalanceSouceRanges:
+  {{- ange $cid := .Values.ui.sevice.loadBalanceSouceRanges }}
+    - {{ $cid }}
+  {{- end }}
+{{- end }}
+  pots:
+    - name: ui
+      {{- if .Values.ui.sevice.sevicePot }}
+      pot: {{ .Values.ui.sevice.sevicePot }}
+      {{- end }}
+      potocol: TCP
+      tagetPot: 3000
+    {{- if .Values.ui.sevice.nodePot }}
+      nodePot: {{ .Values.ui.sevice.nodePot }}
+    {{- end }}
+  type: {{ .Values.ui.sevice.type }}
+{{- end -}}

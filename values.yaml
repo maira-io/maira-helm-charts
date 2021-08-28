@@ -33,43 +33,44 @@ mongodb:
   username: maira
   password: passw0rd
 
+tls:
+  enabled: true
+  key: |
+    -----BEGIN PRIVATE KEY-----
+    MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMzqyycEcZL+dioS
+    eViYBqRdThrZ2/MkxQILW+uWV9yTgb+AAAluEenP0wmCO9TIaDRs283Dxu/elvs+
+    N9BSe6NUl3eDapUbSp2DQcGNEHlRcYzpTsoh9Mt3KvYvZEbvfMV8X3svPFXH61hG
+    brBLcD8by5PVE5aThhddHim1VWIDAgMBAAECgYA9wMw0F+y6JaEqkKKtBjOKOOwe
+    v2S/Y2dTdGThHE+iE3nYYhSgwuD3G0A3711khHiSw/OBkOxUwTmywU9EonbLeR1Y
+    geyewazto+wtPhBTVZGQR2VUZm39QDCUoZ+g0Goq8/divSsngYI3u+wXYQNKvw+W
+    8uUvBJ+XsWh+Lw/0sQJBAP3dtw8J96R3gs5hsj0TvPMDpM1shAVei9GV1lOTwZeR
+    Xaz7dNKityMrOxpn0ydvLMScv+Y9TxoTg0TmjH0SYR0CQQDOo79FhJ1h7xXSYRGX
+    NMqaQBnRndZHR12qHxTj36EA+8WTX0WIDNfmtG6Y/ORik35p0WW/3GX9ULezhpwp
+    o4WfAkEAprCmOmG5EWzHnuvXNPN45bhGxfuy1DO4au2PxWEHhJYWhDa4BnaA+b6x
+    GC2EICiHpLGn723iOqUFVIBtTtJ6oQJAdsVtuiJ4Z4MJkuuSNcv1K+XuMSq8sCmX
+    76F/2159Z1hPft6C06k2K3fIHg01pGdMgLwH9NhUkt5jSD/14IUJ1wJBANAdNrGR
+    xlmbOQvFK+JxtMRYy1ntV9zyuwbpHWRnxey1DezxUTos9rAWaqtZQellqO5G731R
+    Yk7asts8zWY64Kg=
+    -----END PRIVATE KEY-----
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    MIICZjCCAc+gAwIBAgIULjAhxKnkQFHHXpvpbQzu1I94LCgwDQYJKoZIhvcNAQEL
+    BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
+    GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMTA3MjQxNTUyMzFaFw0yMjA3
+    MjQxNTUyMzFaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEw
+    HwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEB
+    BQADgY0AMIGJAoGBAMzqyycEcZL+dioSeViYBqRdThrZ2/MkxQILW+uWV9yTgb+A
+    AAluEenP0wmCO9TIaDRs283Dxu/elvs+N9BSe6NUl3eDapUbSp2DQcGNEHlRcYzp
+    Tsoh9Mt3KvYvZEbvfMV8X3svPFXH61hGbrBLcD8by5PVE5aThhddHim1VWIDAgMB
+    AAGjUzBRMB0GA1UdDgQWBBTkTRxscIIzv4UJsoxoXa9kNlQMIjAfBgNVHSMEGDAW
+    gBTkTRxscIIzv4UJsoxoXa9kNlQMIjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3
+    DQEBCwUAA4GBAEr9l2/HYuLnvu+NiVlN6+jXXBilIwx5PWUQj+MzGrE1KA3dRqtd
+    xWpzviwl1TU3OU8VS3r5zRS7e+CXh72b7apdRTgcDclzuOwC52Mv/AWgubB+ImGF
+    rG/Dcca50uuRpeCjGcRjVrFGeA1Vd0Uy7p6XRYKULGFJkjnDYgX1WDey
+    -----END CERTIFICATE-----
 api:
   enabled: true
   replicaCount: 1
-  tls:
-    key: |
-      -----BEGIN PRIVATE KEY-----
-      MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMzqyycEcZL+dioS
-      eViYBqRdThrZ2/MkxQILW+uWV9yTgb+AAAluEenP0wmCO9TIaDRs283Dxu/elvs+
-      N9BSe6NUl3eDapUbSp2DQcGNEHlRcYzpTsoh9Mt3KvYvZEbvfMV8X3svPFXH61hG
-      brBLcD8by5PVE5aThhddHim1VWIDAgMBAAECgYA9wMw0F+y6JaEqkKKtBjOKOOwe
-      v2S/Y2dTdGThHE+iE3nYYhSgwuD3G0A3711khHiSw/OBkOxUwTmywU9EonbLeR1Y
-      geyewazto+wtPhBTVZGQR2VUZm39QDCUoZ+g0Goq8/divSsngYI3u+wXYQNKvw+W
-      8uUvBJ+XsWh+Lw/0sQJBAP3dtw8J96R3gs5hsj0TvPMDpM1shAVei9GV1lOTwZeR
-      Xaz7dNKityMrOxpn0ydvLMScv+Y9TxoTg0TmjH0SYR0CQQDOo79FhJ1h7xXSYRGX
-      NMqaQBnRndZHR12qHxTj36EA+8WTX0WIDNfmtG6Y/ORik35p0WW/3GX9ULezhpwp
-      o4WfAkEAprCmOmG5EWzHnuvXNPN45bhGxfuy1DO4au2PxWEHhJYWhDa4BnaA+b6x
-      GC2EICiHpLGn723iOqUFVIBtTtJ6oQJAdsVtuiJ4Z4MJkuuSNcv1K+XuMSq8sCmX
-      76F/2159Z1hPft6C06k2K3fIHg01pGdMgLwH9NhUkt5jSD/14IUJ1wJBANAdNrGR
-      xlmbOQvFK+JxtMRYy1ntV9zyuwbpHWRnxey1DezxUTos9rAWaqtZQellqO5G731R
-      Yk7asts8zWY64Kg=
-      -----END PRIVATE KEY-----
-    cert: |
-      -----BEGIN CERTIFICATE-----
-      MIICZjCCAc+gAwIBAgIULjAhxKnkQFHHXpvpbQzu1I94LCgwDQYJKoZIhvcNAQEL
-      BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
-      GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMTA3MjQxNTUyMzFaFw0yMjA3
-      MjQxNTUyMzFaMEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEw
-      HwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwgZ8wDQYJKoZIhvcNAQEB
-      BQADgY0AMIGJAoGBAMzqyycEcZL+dioSeViYBqRdThrZ2/MkxQILW+uWV9yTgb+A
-      AAluEenP0wmCO9TIaDRs283Dxu/elvs+N9BSe6NUl3eDapUbSp2DQcGNEHlRcYzp
-      Tsoh9Mt3KvYvZEbvfMV8X3svPFXH61hGbrBLcD8by5PVE5aThhddHim1VWIDAgMB
-      AAGjUzBRMB0GA1UdDgQWBBTkTRxscIIzv4UJsoxoXa9kNlQMIjAfBgNVHSMEGDAW
-      gBTkTRxscIIzv4UJsoxoXa9kNlQMIjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3
-      DQEBCwUAA4GBAEr9l2/HYuLnvu+NiVlN6+jXXBilIwx5PWUQj+MzGrE1KA3dRqtd
-      xWpzviwl1TU3OU8VS3r5zRS7e+CXh72b7apdRTgcDclzuOwC52Mv/AWgubB+ImGF
-      rG/Dcca50uuRpeCjGcRjVrFGeA1Vd0Uy7p6XRYKULGFJkjnDYgX1WDey
-      -----END CERTIFICATE-----
   image:
     repository: gcr.io/macro-context-293714/maira-apiserver
     tag: latest
@@ -136,3 +137,13 @@ testapp:
   service:
     type: LoadBalancer
     servicePort: 5000
+
+ui:
+  enabled: true
+  image:
+    repository: gcr.io/macro-context-293714/maira-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    servicePort: 443

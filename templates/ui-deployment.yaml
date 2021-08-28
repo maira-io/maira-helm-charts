@@ -1,0 +1,50 @@
+{{- if .Values.ui.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "maira.ui.fullname" . }}
+  labels:
+{{ include "maira.ui.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "maira.ui.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "maira.ui.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "maira.serviceAccountName" . }}
+      containers:
+      - name:  api
+        image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag }}"
+        env:
+          - name: HTTPS
+            value: "{{ .Values.tls.enabled }}"
+      {{- if .Values.tls.enabled -}}
+          - name: SSL_CRT_FILE
+            value: /certs/server.crt
+          - name : SSL_KEY_FILE
+            value: /certs/server.key
+        volumeMounts:
+        - name: tls-cert
+          mountPath: "/certs"
+          readOnly: true
+      volumes:
+      - name: tls-cert
+        secret:
+          secretName: "{{ template "maira.fullname" . }}-tls-secret"
+          items:
+            - key: tls.key
+              path: server.key
+            - key: tls.crt
+              path: server.crt
+      {{- end -}}
+{{- end }}

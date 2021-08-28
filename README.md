@@ -1,6 +1,13 @@
 # maira-helm-chart
 
+## Requirements:
+* Install and setup `kubectl`
+* Install `helm` commandline client
+* Install `uuidgen` command
+* Install `yq` to manipulate yaml - `pip3 install yq`
+
 ## How to install maira services in kubernetes
+
 1.Fetch temporal helm chart from https://github.com/temporalio/helm-charts
 ```bash
 $ git clone https://github.com/temporalio/helm-charts.git  temporal-helm-charts

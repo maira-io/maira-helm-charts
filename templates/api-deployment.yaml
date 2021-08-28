@@ -37,7 +37,7 @@ spec:
       volumes:
       - name: tls-cert
         secret:
-          secretName: "{{ template "maira.api.fullname" . }}-secret"
+          secretName: "{{ template "maira.fullname" . }}-tls-secret"
           items:
             - key: tls.key
               path: server.key
