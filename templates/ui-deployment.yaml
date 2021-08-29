@@ -27,8 +27,7 @@ spec:
         image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag }}"
         env:
           - name: HTTPS
-            value: "{{ .Values.tls.enabled }}"
-      {{- if .Values.tls.enabled -}}
+            value: "true"
           - name: SSL_CRT_FILE
             value: /certs/server.crt
           - name : SSL_KEY_FILE
@@ -46,5 +45,4 @@ spec:
               path: server.key
             - key: tls.crt
               path: server.crt
-      {{- end -}}
 {{- end }}

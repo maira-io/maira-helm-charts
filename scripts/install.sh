@@ -265,8 +265,8 @@ install_maira() {
     --set mongodb.host=$MONGODB_HOST \
     --set mongodb.username=$MONGODB_USERNAME \
     --set mongodb.password=$MONGODB_PASSWORD \
-    --set api.tls.key="`cat $key_file`" \
-    --set api.tls.cert="`cat $cert_file`" \
+    --set tls.key="`cat $key_file`" \
+    --set tls.cert="`cat $cert_file`" \
     --set temporal.host=${RELEASE_NAME}-temporal-frontend.${TEMPORAL_NAMESPACE} \
     $RELEASE_NAME ../
 }

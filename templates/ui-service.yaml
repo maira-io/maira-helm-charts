@@ -1,46 +1,46 @@
 {{- if .Values.ui.enabled -}}
-apiVesion: v1
-kind: Sevice
+apiVersion: v1
+kind: Service
 metadata:
-{{- if .Values.ui.sevice.annotations }}
+{{- if .Values.ui.service.annotations }}
   annotations:
-{{ toYaml .Values.ui.sevice.annotations | indent 4 }}
+{{ toYaml .Values.ui.service.annotations | indent 4 }}
 {{- end }}
   labels:
-    {{- include "maia.ui.labels" . | nindent 4 }}
-{{- if .Values.ui.sevice.labels }}
-{{ toYaml .Values.ui.sevice.labels | indent 4 }}
+    {{- include "maira.ui.labels" . | nindent 4 }}
+{{- if .Values.ui.service.labels }}
+{{ toYaml .Values.ui.service.labels | indent 4 }}
 {{- end }}
-  name: {{ template "maia.ui.fullname" . }}
+  name: {{ template "maira.ui.fullname" . }}
 spec:
-  selecto:
-    app.kubenetes.io/name: {{ template "maia.ui.fullname" . }}
-    app.kubenetes.io/instance: {{ .Release.Name }}
-{{- if .Values.ui.sevice.clusteIP }}
-  clusteIP: {{ .Values.ui.sevice.clusteIP }}
+  selector:
+    app.kubernetes.io/name: {{ template "maira.ui.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.ui.service.clusterIP }}
+  clusterIP: {{ .Values.ui.service.clusterIP }}
 {{- end }}
-{{- if .Values.ui.sevice.extenalIPs }}
-  extenalIPs:
-{{ toYaml .Values.ui.sevice.extenalIPs | indent 4 }}
+{{- if .Values.ui.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.ui.service.externalIPs | indent 4 }}
 {{- end }}
-{{- if .Values.ui.sevice.loadBalanceIP }}
-  loadBalanceIP: {{ .Values.ui.sevice.loadBalanceIP }}
+{{- if .Values.ui.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.ui.service.loadBalancerIP }}
 {{- end }}
-{{- if .Values.ui.sevice.loadBalanceSouceRanges }}
-  loadBalanceSouceRanges:
-  {{- ange $cid := .Values.ui.sevice.loadBalanceSouceRanges }}
-    - {{ $cid }}
+{{- if .Values.ui.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $cidr := .Values.ui.service.loadBalancerSourceRanges }}
+    - {{ $cidr }}
   {{- end }}
 {{- end }}
-  pots:
-    - name: ui
-      {{- if .Values.ui.sevice.sevicePot }}
-      pot: {{ .Values.ui.sevice.sevicePot }}
+  ports:
+    - name: api
+      {{- if .Values.ui.service.servicePort }}
+      port: {{ .Values.ui.service.servicePort }}
       {{- end }}
-      potocol: TCP
-      tagetPot: 3000
-    {{- if .Values.ui.sevice.nodePot }}
-      nodePot: {{ .Values.ui.sevice.nodePot }}
+      protocol: TCP
+      targetPort: 3000
+    {{- if .Values.ui.service.nodePort }}
+      nodePort: {{ .Values.ui.service.nodePort }}
     {{- end }}
-  type: {{ .Values.ui.sevice.type }}
+  type: {{ .Values.ui.service.type }}
 {{- end -}}
