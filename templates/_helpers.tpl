@@ -178,3 +178,34 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
+
+{{/*
+Create a fully qualified maira site manager full name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "maira.sitemanager.fullname" -}}
+{{- if .Values.sitemanager.fullnameOverride -}}
+{{- .Values.sitemanager.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- printf "%s-%s" .Release.Name "sitemanager" | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-%s" .Release.Name $name "sitemanager" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Maira sitemanager labels
+*/}}
+{{- define "maira.sitemanager.labels" -}}
+app.kubernetes.io/name: {{ include "maira.sitemanager.fullname" . }}
+helm.sh/chart: {{ include "maira.chart" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: {{ include "maira.fullname" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}

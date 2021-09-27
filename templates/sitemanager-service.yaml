@@ -1,0 +1,46 @@
+{{- if .Values.sitemanager.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.sitemanager.service.annotations }}
+  annotations:
+{{ toYaml .Values.sitemanager.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    {{- include "maira.sitemanager.labels" . | nindent 4 }}
+{{- if .Values.sitemanager.service.labels }}
+{{ toYaml .Values.sitemanager.service.labels | indent 4 }}
+{{- end }}
+  name: {{ template "maira.sitemanager.fullname" . }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ template "maira.sitemanager.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.sitemanager.service.clusterIP }}
+  clusterIP: {{ .Values.sitemanager.service.clusterIP }}
+{{- end }}
+{{- if .Values.sitemanager.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.sitemanager.service.externalIPs | indent 4 }}
+{{- end }}
+{{- if .Values.sitemanager.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.sitemanager.service.loadBalancerIP }}
+{{- end }}
+{{- if .Values.sitemanager.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $cidr := .Values.sitemanager.service.loadBalancerSourceRanges }}
+    - {{ $cidr }}
+  {{- end }}
+{{- end }}
+  ports:
+    - name: sitemanager
+      {{- if .Values.sitemanager.service.servicePort }}
+      port: {{ .Values.sitemanager.service.servicePort }}
+      {{- end }}
+      protocol: TCP
+      targetPort: 11000
+    {{- if .Values.sitemanager.service.nodePort }}
+      nodePort: {{ .Values.sitemanager.service.nodePort }}
+    {{- end }}
+  type: {{ .Values.sitemanager.service.type }}
+{{- end -}}

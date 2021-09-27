@@ -1,0 +1,28 @@
+{{- if $.Values.sitemanager.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "maira.sitemanager.fullname" . }}
+  labels:
+{{ include "maira.sitemanager.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.sitemanager.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "maira.sitemanager.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ template "maira.sitemanager.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "maira.serviceAccountName" . }}
+      containers:
+      - name:  sitemanager
+        image: "{{ .Values.sitemanager.image.repository }}:{{ .Values.sitemanager.image.tag }}"
+{{- end }}

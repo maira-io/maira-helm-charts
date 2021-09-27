@@ -147,3 +147,14 @@ ui:
   service:
     type: LoadBalancer
     servicePort: 443
+
+sitemanager:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: gcr.io/macro-context-293714/site-manager
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    servicePort: 443
