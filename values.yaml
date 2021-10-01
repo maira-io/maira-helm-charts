@@ -117,7 +117,7 @@ cloud_worker:
         pullPolicy: IfNotPresent
   replicaCount: 1
   image:
-    repository: gcr.io/macro-context-293714/maira-cloud-worker
+    repository: gcr.io/macro-context-293714/cloud-worker
     tag: latest
     pullPolicy: IfNotPresent
   confirmation:
