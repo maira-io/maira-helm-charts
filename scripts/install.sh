@@ -5,49 +5,56 @@ Help()
    # Display Help
    echo "Install maira services and dependencies using helm"
    echo
-   echo "Syntax: $0 -t <temporal chart path> -k <key file> -c <cert file> |-e <env file>|"
+   echo "Syntax: $0 -t <temporal chart path> |-e <env file>| |-c|"
    echo "options:"
    echo "t <temporal chart path>   Temporal helm chart path"
    echo "e <env file>              env file path to pass environment variables"
-   echo "k <key file>              TLS key file path"
-   echo "c <cert file>             TLS certificate file path"
+   echo "c                         create gke cluster"
    echo "h                         Print this help"
    echo
 
    echo "Example: $0 -t /home/user/temporal-helm-chart -k key.pem -c cert.pem -e sample.env"
 }
 
-while getopts e:t:hk:c: flag
+while getopts e:t:hc flag
 do
     case "${flag}" in
         e) envfile=${OPTARG};;
         t) temporal_chart_path=${OPTARG};;
-        c) cert_file=${OPTARG};;
-        k) key_file=${OPTARG};;
+        c) create_cluster="yes";;
         h)
           Help
           exit;;
     esac
 done
 
-if [ -z "$cert_file" ] || [ -z "$key_file" ]; then
-  echo "ERROR: certificate and key file paths must be provided"
-  Help
-  exit 1
-fi
-
 #
 set -a
 # Optional first argument to this script is an env file which
 # may used to override certain variable as mentioned below
-if [ -n "$1" ]; then
+if [ -n "$envfile" ]; then
   source $envfile
 fi
 
+if [ -z "$TLS_CERT_FILE" ] || [ -z "$TLS_KEY_FILE" ]; then
+  if [ -z "$TLS_CERT_SECRET_NAME" ] || [ -z "$TLS_KEY_SECRET_NAME" ]; then
+    echo "ERROR: either certificate and key file paths or secret names must be provided"
+    Help
+    exit 1
+  fi
+fi
+
 ## One may set appropriate environment variables to overrride below entries
+GCP_PROJECT_ID=${GCP_PROJECT_ID}
+if [ -z "${GCP_PROJECT_ID}" ]; then
+  echo "ERROR! Please set a unique GCP_PROJECT_ID environment variable"
+  exit 1
+fi
+
 CLUSTER_NAME=${CLUSTER_NAME}
+CLUSTER_ZONE="${CLUSTER_ZONE:-us-central1-c}"
 if [ -z "${CLUSTER_NAME}" ]; then
-  echo "ERROR! Please set a unique CLUSTER_NAME environment variable to use for ingress name"
+  echo "ERROR! Please set GKE cluster name in CLUSTER_NAME environment variable"
   exit 1
 fi
 CASSANDRA_CLUSTER_NAME="${CASSANDRA_CLUSTER_NAME:-cluster1}"
@@ -66,11 +73,12 @@ RELEASE_NAME="${RELEASE_NAME:-r1}"
 ########## One will not be able to override below variables
 CASSANDRA_ADMIN_USERNAME="cass-superuser"
 CASSANDRA_ADMIN_SECRET_NAME="cassandra-${CASSANDRA_CLUSTER_NAME}-admin"
-
+k8SSANDRA_VERSION="v1.7.1"
 # TODO: Once the operator can monitor multiple namespaces, we can use any namespace,
 #   but currently it should be same as cassandra operator namespace
 CASSANDRA_NAMESPACE="cass-operator"
-CASSANDRA_CLUSTER_MANIFEST="https://raw.githubusercontent.com/k8ssandra/cass-operator/master/operator/example-cassdc-yaml/cassandra-3.11.x/example-cassdc-minimal.yaml"
+CASSANDRA_OPERATOR_MANIFEST="https://raw.githubusercontent.com/k8ssandra/cass-operator/${k8SSANDRA_VERSION}/docs/user/cass-operator-manifests.yaml"
+CASSANDRA_CLUSTER_MANIFEST="https://raw.githubusercontent.com/k8ssandra/cass-operator/${k8SSANDRA_VERSION}/operator/example-cassdc-yaml/cassandra-3.11.x/example-cassdc-minimal.yaml"
 CASSANDRA_PORT=9042
 
 TEMPORAL_NAMESPACE="temporal"
@@ -87,25 +95,37 @@ TEMPORAL_VISIBILITY_CASSANDRA_PASSWORD='' # This will be set later in the code
 MONGODB_HOST="${MONGODB_HOST:-cluster0.aq7of.mongodb.net}"
 MONGODB_USERNAME="${MONGODB_USERNAME:-maira}"
 MONGODB_PASSWORD=$MONGODB_PASSWORD
-if [ -z "${MONGODB_PASSWORD}" ]; then
-  echo "ERROR! You must set mongodb password to env variable MONGODB_PASSWORD"
+MONGODB_PASSWORD_SECRET_NAME=${MONGODB_PASSWORD_SECRET_NAME}
+if [ -z "${MONGODB_PASSWORD}" ] && [ -z "${MONGODB_PASSWORD_SECRET_NAME}" ]; then
+  echo "ERROR! You must env variables either MONGODB_PASSWORD or MONGODB_PASSWORD_SECRET_NAME"
   exit 1
 fi
 MAIRA_NAMESPACE="maira"
+# service account (SA) names
+MAIRA_K8S_SA_NAME="${RELEASE_NAME}-maira"
+MAIRA_GCP_SA_NAME="${RELEASE_NAME}-maira-workload"
+
+# CSI setup
+CSI_NAMESPACE="kube-system"
 set +a
+
+gke_cluster_details=$(gcloud container clusters  list --filter=tc3 | grep -e "^tc3\>")
+gke_cluster_zone=$(echo gke_cluster_details | awk '{print $2}')
 
 # https://github.com/k8ssandra/cass-operator
 # this will insttall a crd cassandradatacenters.cassandra.datastax.com in default namespace - why?
 #      - without this crd, you cannor creeate cassandra datacenter
 # TODO: Install operaator tthat caan monitor muliple namespaces - https://medium.com/swlh/watch-multiple-namespaces-with-cass-operator-81d04a5af741
 install_cassandra_operator() {
-  kubectl -n $CASSANDRA_NAMESPACE apply -f https://raw.githubusercontent.com/k8ssandra/cass-operator/v1.7.1/docs/user/cass-operator-manifests.yaml
+  create_ns $CASSANDRA_NAMESPACE
+  kubectl -n $CASSANDRA_NAMESPACE apply -f $CASSANDRA_OPERATOR_MANIFEST
 }
 
-create_temporal_ns() {
-  kubectl get namespace $TEMPORAL_NAMESPACE -o name 2>/dev/null
+create_ns() {
+  name=$1
+  kubectl get namespace $name -o name 2>/dev/null
   if [[ $? -ne 0 ]]; then
-    kubectl create namespace $TEMPORAL_NAMESPACE
+    kubectl create namespace $name
   fi
 }
 
@@ -123,7 +143,7 @@ create_secret() {
 
 install_cassandra_cluster() {
   # create temporal namespace 
-  create_temporal_ns
+  create_ns $TEMPORAL_NAMESPACE
   # create secret for cassandra superuser
   create_secret $CASSANDRA_NAMESPACE $CASSANDRA_ADMIN_SECRET_NAME $CASSANDRA_ADMIN_USERNAME
 
@@ -179,6 +199,61 @@ create_cassandra_keyspace() {
     sh -c "cqlsh -u '$CASSANDRA_ADMIN_USERNAME' -p '$CASSANDRA_ADMIN_PASSWORD' --execute \
       \"CREATE KEYSPACE IF NOT EXISTS ${name} with replication={'class': 'SimpleStrategy', 'replication_factor' : ${replication_factor}};\"
     "
+}
+
+gke_enable_workload_identity() {
+  gcloud container clusters update ${CLUSTER_NAME} \
+  --identity-namespace=${GCP_PROJECT_ID}.svc.id.goog
+}
+
+create_maira_gcp_service_account() {
+  echo "Creating GCP service account"
+  gcloud iam service-accounts describe ${MAIRA_GCP_SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com || \
+    gcloud iam service-accounts create ${MAIRA_GCP_SA_NAME}
+}
+
+bind_maira_service_accounts() {
+  echo "Binding GCP service account with Kubernetes service account"
+  gcloud iam service-accounts add-iam-policy-binding \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:${GCP_PROJECT_ID}.svc.id.goog[${MAIRA_NAMESPACE}/${MAIRA_K8S_SA_NAME}]" \
+    ${MAIRA_GCP_SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+}
+
+bind_gcp_secret() {
+  name=$1
+  gcloud secrets add-iam-policy-binding $name \
+    --member=serviceAccount:${MAIRA_GCP_SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/secretmanager.secretAccessor
+}
+
+setup_gcp_for_secrets() {
+  create_maira_gcp_service_account
+  bind_maira_service_accounts
+}
+
+setup_csi() {
+  # Create namespace
+  create_ns ${CSI_NAMESPACE}
+  # add csi helm chart repo
+  helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+  # install csi
+  helm_op="install"
+  helm -n $CSI_NAMESPACE list -q | grep -q "^$RELEASE_NAME$"
+  if [ $? == 0 ]; then
+    helm_op=upgrade
+  fi
+  helm ${helm_op} -n $CSI_NAMESPACE \
+    $RELEASE_NAME secrets-store-csi-driver/secrets-store-csi-driver \
+    --set grpcSupportedProviders="gcp" \
+    --set syncSecret.enabled=true \
+    --set enableSecretRotation=true
+  echo "Waiting for CSI pods are up and running"
+  kubectl -n $CSI_NAMESPACE wait --for=condition=ready pod -l "app=secrets-store-csi-driver"
+  kubectl -n $CSI_NAMESPACE apply -f \
+    https://raw.githubusercontent.com/GoogleCloudPlatform/secrets-store-csi-driver-provider-gcp/main/deploy/provider-gcp-plugin.yaml
+  echo "Waiting for gcp CSI pods up and running"
+  kubectl -n $CSI_NAMESPACE wait --for=condition=ready pod -l "app=csi-secrets-store-provider-gcp"
 }
 
 create_cassandra_role_for_keyspace() {
@@ -251,30 +326,91 @@ install_temporal() {
   popd
 }
 
+install_gke_cluster() {
+  gcloud beta container clusters describe ${CLUSTER_NAME} --region $CLUSTER_ZONE || \
+  gcloud beta container clusters create ${CLUSTER_NAME} \
+   --project $GCP_PROJECT_ID \
+   --zone $CLUSTER_ZONE \
+   --no-enable-basic-auth \
+   --machine-type "e2-standard-4" \
+   --image-type "COS_CONTAINERD" \
+   --disk-type "pd-standard" \
+   --disk-size "100" \
+   --metadata disable-legacy-endpoints=true \
+   --max-pods-per-node "110" \
+   --num-nodes "3" \
+   --enable-ip-alias \
+   --network "projects/${GCP_PROJECT_ID}/global/networks/default" \
+   --subnetwork "projects/${GCP_PROJECT_ID}/regions/us-central1/subnetworks/default" \
+   --no-enable-intra-node-visibility \
+   --default-max-pods-per-node "110" \
+   --no-enable-master-authorized-networks \
+   --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver \
+   --enable-autoupgrade \
+   --enable-autorepair \
+   --max-surge-upgrade 1 \
+   --max-unavailable-upgrade 0 \
+   --workload-pool "${GCP_PROJECT_ID}.svc.id.goog" \
+   --enable-shielded-nodes \
+   --node-locations $CLUSTER_ZONE
+}
+
 install_maira() {
   helm_op="install"
-  kubectl get ns $MAIRA_NAMESPACE -o name 2>/dev/null
-  if [[ $? -ne 0 ]]; then
-    kubectl create ns $MAIRA_NAMESPACE
-  fi
+  create_ns $MAIRA_NAMESPACE
   helm -n $MAIRA_NAMESPACE list -q | grep -q "^$RELEASE_NAME$"
   if [ $? == 0 ]; then
     helm_op=upgrade
   fi
-  helm ${helm_op} -n $MAIRA_NAMESPACE \
+  if [[ -n "$TLS_KEY_FILE" ]]; then
+    set_tls="--set tls.key=\"`cat $TLS_KEY_FILE`\" \
+            --set tls.cert=\"`cat $TLS_CERT_FILE`\""
+  elif [[ -n "$TLS_KEY_SECRET_NAME" ]]; then
+    set_tls="--set tls.gcp.key_secret_name=${TLS_KEY_SECRET_NAME} \
+            --set tls.gcp.cert_secret_name=${TLS_CERT_SECRET_NAME}"
+  else
+    set_tls="--set tls.enable=false"
+  fi
+  cmd="helm ${helm_op} -n $MAIRA_NAMESPACE \
+    --set gcp.project_id=$GCP_PROJECT_ID \
+    --set gcp.service_account=$MAIRA_GCP_SA_NAME \
     --set mongodb.host=$MONGODB_HOST \
     --set mongodb.username=$MONGODB_USERNAME \
     --set mongodb.password=$MONGODB_PASSWORD \
-    --set tls.key="`cat $key_file`" \
-    --set tls.cert="`cat $cert_file`" \
     --set temporal.host=${RELEASE_NAME}-temporal-frontend.${TEMPORAL_NAMESPACE} \
-    $RELEASE_NAME ../
+    $set_tls \
+    $RELEASE_NAME ../"
+  echo "$cmd"
+  $cmd
 }
 
 main() {
   red='\033[0;31m'
   reset='\033[0m'
-  create_temporal_ns
+  if [[ -n "$create_cluster" ]]; then
+    cat <<-EOF
+creating GKE cluster with below details
+Cluster Name: ${CLUSTER_NAME}
+GCP Project ID: $GCP_PROJECT_ID
+EOF
+    echo -n "Are you sure to create cluster?(yes/no): "
+    read confirm
+    if [[ "$confirm" == "yes" ]]; then
+      install_gke_cluster
+    fi
+  fi
+  # Setting up csi
+  setup_csi
+  setup_gcp_for_secrets
+
+  if [[ -n $TLS_KEY_SECRET_NAME ]]; then
+    # bind gcp service account to secret to grant
+    #  the new service account permission to access the secret
+    bind_gcp_secret $TLS_KEY_SECRET_NAME
+    bind_gcp_secret $TLS_CERT_SECRET_NAME
+  fi
+
+  create_ns $TEMPORAL_NAMESPACE
   echo -e "${red}Installing cassandra operator${reset}"
   install_cassandra_operator
   echo -e "${red}Installing cassandra cluster${reset}"

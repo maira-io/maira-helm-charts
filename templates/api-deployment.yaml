@@ -31,6 +31,10 @@ spec:
         - name: tls-cert
           mountPath: "/certs"
           readOnly: true
+        # This is needed to sync the k8s secret with gcp secrets
+        - name: tls-gcp-secret
+          mountPath: "/var/tls-gcp-secret"
+          readOnly: true
         - name: config-yml
           mountPath: "/config"
           readOnly: true
@@ -43,6 +47,13 @@ spec:
               path: server.key
             - key: tls.crt
               path: server.crt
+      # This is needed to sync the k8s secret with gcp secrets
+      - name: tls-gcp-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: {{ template "maira.fullname" . }}-tls-secretprovider
       - name: config-yml
         configMap:
           name: "{{ template "maira.api.fullname" . }}-config"
