@@ -7,8 +7,8 @@ metadata:
 {{ include "maira.api.labels" . | indent 4 }}
 data:
   config.yml: |-
-    grpc_listen_addr: :8000
-    rest_listen_addr: :11000
+    grpc_listen_addr: :{{ .Values.api.grpcPort }}
+    rest_listen_addr: :{{ .Values.api.apiPort }}
     db_uri: "mongodb+srv://{{ .Values.mongodb.username }}:{{ .Values.mongodb.password }}@{{ .Values.mongodb.host }}/generated?retryWrites=true&w=majority"
     max_message_size_bytes: 500000000
     server_cert: /certs/server.crt

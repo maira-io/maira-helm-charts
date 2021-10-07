@@ -1,0 +1,16 @@
+{{- if $.Values.sitemanager.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ template "maira.sitemanager.fullname" . }}-config"
+  labels:
+{{ include "maira.sitemanager.labels" . | indent 4 }}
+data:
+  config.yml: |-
+    grpc_listen_addr: :{{ .Values.sitemanager.grpcPort }}
+    rest_listen_addr: :{{ .Values.sitemanager.apiPort }}
+    server_cert: /certs/server.crt
+    server_key: /certs/server.key
+    api_server: {{ template "maira.api.fullname" . }}:{{ .Values.api.service.servicePort }}
+    max_message_size_bytes: 500000000
+{{- end }}

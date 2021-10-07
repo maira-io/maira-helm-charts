@@ -25,4 +25,36 @@ spec:
       containers:
       - name:  sitemanager
         image: "{{ .Values.sitemanager.image.repository }}:{{ .Values.sitemanager.image.tag }}"
+        command: ["/site-manager"]
+        args: ["-c", "/config/config.yml"]
+        volumeMounts:
+        - name: tls-cert
+          mountPath: "/certs"
+          readOnly: true
+        # This is needed to sync the k8s secret with gcp secrets
+        - name: tls-gcp-secret
+          mountPath: "/var/tls-gcp-secret"
+          readOnly: true
+        - name: config-yml
+          mountPath: "/config"
+          readOnly: true
+      volumes:
+      - name: tls-cert
+        secret:
+          secretName: {{ template "maira.fullname" . }}-tls-secret
+          items:
+            - key: tls.key
+              path: server.key
+            - key: tls.crt
+              path: server.crt
+      # This is needed to sync the k8s secret with gcp secrets
+      - name: tls-gcp-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: {{ template "maira.fullname" . }}-tls-secretprovider
+      - name: config-yml
+        configMap:
+          name: {{ template "maira.sitemanager.fullname" . }}-config
 {{- end }}
