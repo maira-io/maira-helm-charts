@@ -51,7 +51,7 @@ Create the name of the service account to use
 {{- if .Values.serviceAccount.create -}}
     {{ default (include "maira.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
+    {{ default (include "maira.fullname" .) .Values.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -60,16 +60,8 @@ Create a fully qualified maira api full name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "maira.api.fullname" -}}
-{{- if .Values.api.fullnameOverride -}}
-{{- .Values.api.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name "api" | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name "api" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
+{{- $component := "api" -}}
+{{- printf "%s-%s" (include "maira.fullname" . | trunc (sub 62 (len $component) | int) | trimSuffix "-" ) $component | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -91,16 +83,8 @@ Create a fully qualified maira cloud worker full name.
 Truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "maira.cloud_worker.fullname" -}}
-{{- if .Values.cloud_worker.fullnameOverride -}}
-{{- .Values.cloud_worker.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name "cloud-worker" | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name "cloud-worker" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
+{{- $component := "cloud-worker" -}}
+{{- printf "%s-%s" (include "maira.fullname" . | trunc (sub 62 (len $component) | int) | trimSuffix "-" ) $component | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -122,20 +106,12 @@ Create a fully qualified maira test app full name.
 Truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "maira.testapp.fullname" -}}
-{{- if .Values.testapp.fullnameOverride -}}
-{{- .Values.testapp.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name "testapp" | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name "testapp" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
+{{- $component := "testapp" -}}
+{{- printf "%s-%s" (include "maira.fullname" . | trunc (sub 62 (len $component) | int) | trimSuffix "-" ) $component | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
-Maira cloud worker labels
+Maira testapp labels
 */}}
 {{- define "maira.testapp.labels" -}}
 app.kubernetes.io/name: {{ include "maira.testapp.fullname" . }}
@@ -153,16 +129,8 @@ Create a fully qualified maira ui full name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "maira.ui.fullname" -}}
-{{- if .Values.ui.fullnameOverride -}}
-{{- .Values.ui.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name "ui" | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name "ui" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
+{{- $component := "ui" -}}
+{{- printf "%s-%s" (include "maira.fullname" . | trunc (sub 62 (len $component) | int) | trimSuffix "-" ) $component | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -184,16 +152,8 @@ Create a fully qualified maira site manager full name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "maira.sitemanager.fullname" -}}
-{{- if .Values.sitemanager.fullnameOverride -}}
-{{- .Values.sitemanager.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name "sitemanager" | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name "sitemanager" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
+{{- $component := "sitemanager" -}}
+{{- printf "%s-%s" (include "maira.fullname" . | trunc (sub 62 (len $component) | int) | trimSuffix "-" ) $component | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

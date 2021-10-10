@@ -322,6 +322,7 @@ install_temporal() {
     --set server.config.persistence.visibility.cassandra.user=${TEMPORAL_VISIBILITY_CASSANDRA_USERNAME} \
     --set server.config.persistence.visibility.cassandra.password=${TEMPORAL_VISIBILITY_CASSANDRA_PASSWORD} \
     --set server.config.persistence.visibility.cassandra.replicationFactor=${CASSANDRA_REPLICATION_FACTOR} \
+    --set fullnameOverride=${RELEASE_NAME} \
     $RELEASE_NAME .
   popd
 }
@@ -377,7 +378,9 @@ install_maira() {
     --set mongodb.host=$MONGODB_HOST \
     --set mongodb.username=$MONGODB_USERNAME \
     --set mongodb.password=$MONGODB_PASSWORD \
-    --set temporal.host=${RELEASE_NAME}-temporal-frontend.${TEMPORAL_NAMESPACE} \
+    --set fullnameOverride=${RELEASE_NAME} \
+    --set serviceAccount.name=$MAIRA_K8S_SA_NAME \
+    --set temporal.host=${RELEASE_NAME}-frontend.${TEMPORAL_NAMESPACE} \
     $set_tls \
     $RELEASE_NAME ../"
   echo "$cmd"
