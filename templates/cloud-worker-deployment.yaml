@@ -37,8 +37,12 @@ spec:
         env:
           - name: SERVER_HOST_PORT
             value: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
-          - name: CONFIRMATION_SERVER
-            value: "{{ .Values.cloud_worker.confirmation.host }}:{{ .Values.cloud_worker.confirmation.port }}"
+          - name: SITE_MANAGER_HOST_PORT
+            value: {{ template "maira.sitemanager.fullname" . }}:{{ .Values.sitemanager.service.servicePort }}
+          - name: API_SERVER
+            value: {{ template "maira.api.fullname" . }}:{{ .Values.api.service.servicePort }}
+          - name: CONFIRMATION_URL
+            value: "https://demo.maira.io/confirmation"
           - name: EMAIL_PASSWORD
             valueFrom:
               secretKeyRef:
