@@ -38,9 +38,14 @@ temporal:
   enabled: true
 
 mongodb:
-  host: cluster0.aq7of.mongodb.net
-  username: maira
-  password: passw0rd
+  # Either credential details like host, username, password or gcp.db_uri_secret_name
+  # must be provided
+  #
+  # host: cluster0.aq7of.mongodb.net
+  # username: maira
+  # password: passw0rd
+  gcp:
+    db_uri_secret_name: 
 
 tls:
   enabled: true
@@ -50,8 +55,8 @@ tls:
     # *secret_name are the secret names defined in GCP secret manager
     # key_secret_name -  tls key secret name
     # cert_secret_name - tls cert secret name
-    # key_secret_name:
-    # cert_secret_name:
+    key_secret_name:
+    cert_secret_name:
   # tls key and cert content
   key:
   cert:

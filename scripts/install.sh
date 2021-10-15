@@ -364,8 +364,8 @@ install_maira() {
     helm_op=upgrade
   fi
   if [[ -n "$TLS_KEY_FILE" ]]; then
-    set_tls="--set tls.key=\"`cat $TLS_KEY_FILE`\" \
-            --set tls.cert=\"`cat $TLS_CERT_FILE`\""
+    set_tls=--set tls.key="$(cat $TLS_KEY_FILE)" \
+            --set tls.cert="$(cat $TLS_CERT_FILE)"
   elif [[ -n "$TLS_KEY_SECRET_NAME" ]]; then
     set_tls="--set tls.gcp.key_secret_name=${TLS_KEY_SECRET_NAME} \
             --set tls.gcp.cert_secret_name=${TLS_CERT_SECRET_NAME}"
@@ -388,6 +388,8 @@ install_maira() {
 }
 
 main() {
+  install_maira
+  exit
   red='\033[0;31m'
   reset='\033[0m'
   if [[ -n "$create_cluster" ]]; then
