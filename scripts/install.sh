@@ -96,10 +96,13 @@ MONGODB_HOST="${MONGODB_HOST:-cluster0.aq7of.mongodb.net}"
 MONGODB_USERNAME="${MONGODB_USERNAME:-maira}"
 MONGODB_PASSWORD=$MONGODB_PASSWORD
 MONGODB_PASSWORD_SECRET_NAME=${MONGODB_PASSWORD_SECRET_NAME}
-if [ -z "${MONGODB_PASSWORD}" ] && [ -z "${MONGODB_PASSWORD_SECRET_NAME}" ]; then
-  echo "ERROR! You must env variables either MONGODB_PASSWORD or MONGODB_PASSWORD_SECRET_NAME"
-  exit 1
+if [ -z "$MONGODB_HOST" ] || [ -z "$MONGODB_USERNAME" ] || [ -z "$MONGODB_PASSWORD" ]; then
+  if [ -z "$MONGODB_PASSWORD_SECRET_NAME" ]; then
+    echo "ERROR: either MONGODB_HOST, MONGODB_USERNAME, MONGODB_PASSWORD or gcp MONGODB_PASSWORD_SECRET_NAME must be provided"
+    exit 1
+  fi
 fi
+
 MAIRA_NAMESPACE="maira"
 # service account (SA) names
 MAIRA_K8S_SA_NAME="${RELEASE_NAME}-maira"
@@ -363,6 +366,14 @@ install_maira() {
   if [ $? == 0 ]; then
     helm_op=upgrade
   fi
+
+  if [ -n "$MONGODB_HOST" ] && [ -n "$MONGODB_USERNAME" ] && [ -n "$MONGODB_PASSWORD" ]; then
+    set_mongodb="--set mongodb.host=$MONGODB_HOST \
+                --set mongodb.username=$MONGODB_USERNAME \
+                --set mongodb.password=$MONGODB_PASSWORD "
+  elif [ -n "$MONGODB_PASSWORD_SECRET_NAME" ]; then
+    set_mongodb="--set mongodb.gcp.db_uri_secret_name=$MONGODB_PASSWORD_SECRET_NAME "
+  fi
   if [[ -n "$TLS_KEY_FILE" ]]; then
     set_tls="--set tls.key=\"$(cat $TLS_KEY_FILE)\" \
             --set tls.cert=\"$(cat $TLS_CERT_FILE)\""
@@ -375,12 +386,10 @@ install_maira() {
   cmd="helm ${helm_op} -n $MAIRA_NAMESPACE \
     --set gcp.project_id=$GCP_PROJECT_ID \
     --set gcp.service_account=$MAIRA_GCP_SA_NAME \
-    --set mongodb.host=$MONGODB_HOST \
-    --set mongodb.username=$MONGODB_USERNAME \
-    --set mongodb.password=$MONGODB_PASSWORD \
     --set fullnameOverride=${RELEASE_NAME} \
     --set serviceAccount.name=$MAIRA_K8S_SA_NAME \
     --set temporal.host=${RELEASE_NAME}-frontend.${TEMPORAL_NAMESPACE} \
+    $set_mongodb \
     $set_tls \
     $RELEASE_NAME ../"
   echo "$cmd"
@@ -406,6 +415,11 @@ EOF
   setup_csi
   setup_gcp_for_secrets
 
+  if [[ -n $MONGODB_PASSWORD_SECRET_NAME ]]; then
+    # bind gcp service account to secret to grant
+    #  the new service account permission to access the secret
+    bind_gcp_secret $MONGODB_PASSWORD_SECRET_NAME
+  fi
   if [[ -n $TLS_KEY_SECRET_NAME ]]; then
     # bind gcp service account to secret to grant
     #  the new service account permission to access the secret

@@ -44,6 +44,8 @@ mongodb:
   # host: cluster0.aq7of.mongodb.net
   # username: maira
   # password: passw0rd
+  username:
+  password:
   gcp:
     db_uri_secret_name: 
 

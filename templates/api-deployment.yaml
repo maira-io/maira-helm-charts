@@ -1,4 +1,4 @@
-{{- if .Values.api.enabled -}}
+{{- if $.Values.api.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,10 +27,21 @@ spec:
         image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
         command: ["/apiserver"]
         args: ["-c", "/config/config.yml"]
+        env:
+        - name: DB_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "maira.fullname" . }}-db-uri-secret
+              key: db_uri
         volumeMounts:
         - name: config-yml
           mountPath: "/config"
           readOnly: true
+        {{- if .Values.mongodb.gcp.db_uri_secret_name }}
+        - name: db-uri-gcp-secret
+          mountPath: "/var/db-uri-gcp-secret"
+          readOnly: true
+        {{- end }}
         {{- if .Values.tls.enabled }}
         - name: tls-cert
           mountPath: "/certs"
@@ -46,6 +57,14 @@ spec:
       - name: config-yml
         configMap:
           name: "{{ template "maira.api.fullname" . }}-config"
+      {{- if .Values.mongodb.gcp.db_uri_secret_name }}
+      - name: db-uri-gcp-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: {{ template "maira.fullname" . }}-db-uri-secretprovider
+      {{- end }}
       {{- if .Values.tls.enabled }}
       - name: tls-cert
         secret:
