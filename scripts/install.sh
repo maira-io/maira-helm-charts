@@ -388,8 +388,6 @@ install_maira() {
 }
 
 main() {
-  install_maira
-  exit
   red='\033[0;31m'
   reset='\033[0m'
   if [[ -n "$create_cluster" ]]; then
