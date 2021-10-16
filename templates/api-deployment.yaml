@@ -28,17 +28,25 @@ spec:
         command: ["/apiserver"]
         args: ["-c", "/config/config.yml"]
         volumeMounts:
+        - name: config-yml
+          mountPath: "/config"
+          readOnly: true
+        {{- if .Values.tls.enabled }}
         - name: tls-cert
           mountPath: "/certs"
           readOnly: true
         # This is needed to sync the k8s secret with gcp secrets
+        {{- if .Values.tls.gcp.key_secret_name }}
         - name: tls-gcp-secret
           mountPath: "/var/tls-gcp-secret"
           readOnly: true
-        - name: config-yml
-          mountPath: "/config"
-          readOnly: true
+        {{- end }}
+        {{- end }}
       volumes:
+      - name: config-yml
+        configMap:
+          name: "{{ template "maira.api.fullname" . }}-config"
+      {{- if .Values.tls.enabled }}
       - name: tls-cert
         secret:
           secretName: "{{ template "maira.fullname" . }}-tls-secret"
@@ -47,6 +55,7 @@ spec:
               path: server.key
             - key: tls.crt
               path: server.crt
+      {{- if .Values.tls.gcp.key_secret_name }}
       # This is needed to sync the k8s secret with gcp secrets
       - name: tls-gcp-secret
         csi:
@@ -54,7 +63,6 @@ spec:
           readOnly: true
           volumeAttributes:
             secretProviderClass: {{ template "maira.fullname" . }}-tls-secretprovider
-      - name: config-yml
-        configMap:
-          name: "{{ template "maira.api.fullname" . }}-config"
+      {{- end }}
+      {{- end }}
 {{- end }}
