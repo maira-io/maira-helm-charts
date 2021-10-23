@@ -147,8 +147,8 @@ ui:
 sitemanager:
   enabled: true
   replicaCount: 1
-  apiPort: 11001
-  grpcPort: 8001
+  apiPort: 11000
+  grpcPort: 8000
   image:
     repository: gcr.io/macro-context-293714/site-manager
     tag: latest
