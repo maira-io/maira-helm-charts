@@ -42,7 +42,7 @@ spec:
           - name: API_SERVER
             value: {{ template "maira.api.fullname" . }}:{{ .Values.api.service.servicePort }}
           - name: CONFIRMATION_URL
-            value: "https://demo.maira.io/confirmation"
+            value: "{{ .Values.cloud_worker.confirmation_url }}"
           - name: EMAIL_PASSWORD
             valueFrom:
               secretKeyRef:
