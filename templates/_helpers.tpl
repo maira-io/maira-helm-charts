@@ -102,29 +102,6 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-Create a fully qualified maira test app full name.
-Truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
-{{- define "maira.testapp.fullname" -}}
-{{- $component := "testapp" -}}
-{{- printf "%s-%s" (include "maira.fullname" . | trunc (sub 62 (len $component) | int) | trimSuffix "-" ) $component | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Maira testapp labels
-*/}}
-{{- define "maira.testapp.labels" -}}
-app.kubernetes.io/name: {{ include "maira.testapp.fullname" . }}
-helm.sh/chart: {{ include "maira.chart" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/part-of: {{ include "maira.fullname" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{/*
 Create a fully qualified maira ui full name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
