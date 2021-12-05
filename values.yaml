@@ -106,10 +106,12 @@ cloud_worker:
   temporal:
     namespace:
       name: default
+      # retention cannot be more than 30 days
+      retention: 30d
       createIfNotPresent: true
       image:
         repository: temporalio/admin-tools
-        tag: 1.10.2
+        tag: 1.13.1
         pullPolicy: IfNotPresent
   replicaCount: 1
   image:

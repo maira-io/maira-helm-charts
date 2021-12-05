@@ -26,7 +26,15 @@ spec:
       initContainers:
       - name: init-temporal-namespace
         image: "{{ .Values.cloud_worker.temporal.namespace.image.repository }}:{{ .Values.cloud_worker.temporal.namespace.image.tag }}"
-        command: ['sh', '-xc', "tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc  || (tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace register && tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc)"]
+        command: [
+          'sh',
+          '-xc',
+          "tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc && \
+          (tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace update --retention {{ .Values.cloud_worker.temporal.namespace.retention }} && \
+              tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc) || \
+            (tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace register --retention {{ .Values.cloud_worker.temporal.namespace.retention }} && \
+              tctl --ns {{ .Values.cloud_worker.temporal.namespace.name }} namespace desc)"
+        ]
         env:
         - name: TEMPORAL_CLI_ADDRESS
           value: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
