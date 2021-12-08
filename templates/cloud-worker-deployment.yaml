@@ -51,6 +51,8 @@ spec:
             value: {{ template "maira.api.fullname" . }}:{{ .Values.api.service.servicePort }}
           - name: CONFIRMATION_URL
             value: "{{ .Values.cloud_worker.confirmation_url }}"
+          - name: EMAIL_TEMPLATE_ID
+            value: d-09e71fe13d354a90aedf1bb8e733d8c7
           - name: EMAIL_PASSWORD
             valueFrom:
               secretKeyRef:
