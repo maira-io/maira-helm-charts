@@ -52,10 +52,18 @@ spec:
           - name: CONFIRMATION_URL
             value: "{{ .Values.cloud_worker.confirmation_url }}"
           - name: EMAIL_TEMPLATE_ID
-            value: d-09e71fe13d354a90aedf1bb8e733d8c7
+            value: "{{ .Values.cloud_worker.email_template_id }}"
           - name: EMAIL_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: "{{ template "maira.cloud_worker.fullname" . }}-secret"
                 key: email_password
+          - name: AUTH_URL
+            value: "{{ .Values.cloud_worker.auth.url }}"
+          - name: AUTH_CLIENT_ID
+            value: "{{ .Values.cloud_worker.auth.client_id }}"
+          - name: AUTH_CLIENT_SECRET
+            value: "{{ .Values.cloud_worker.auth.client_secret }}"
+          - name: AUTH_AUDIENCE
+            value: "{{ .Values.cloud_worker.auth.audience }}"
 {{- end }}
