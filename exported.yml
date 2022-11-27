@@ -1,0 +1,385 @@
+---
+# Source: maira/templates/cloud-worker-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "release-name-maira-cloud-worker-secret"
+  labels:
+    app.kubernetes.io/name: release-name-maira-cloud-worker
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  email_password: "cWFjb2h6Y3pjZGFhY3NqZA=="
+---
+# Source: maira/templates/api-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "release-name-maira-api-config"
+  labels:
+    app.kubernetes.io/name: release-name-maira-api
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  config.yml: |-
+    grpc_listen_addr: :8000
+    rest_listen_addr: :11000
+    max_message_size_bytes: 500000000
+    server_cert: /certs/server.crt
+    server_key: /certs/server.key
+    workflow_server: "temporaltest-frontend:7233"
+    slack:
+      bot_server: "api.demo.maira.io:443"
+      maira_client_id: ""
+      maira_oauth_key: ""
+      slack_client_id: ""
+      slack_oauth_key: ""
+      slack_signing_secret: ""
+      log_level: info
+---
+# Source: maira/templates/sitemanager-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "release-name-maira-sitemanager-config"
+  labels:
+    app.kubernetes.io/name: release-name-maira-sitemanager
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  config.yml: |-
+    grpc_listen_addr: :8000
+    rest_listen_addr: :11000
+    server_cert: /certs/server.crt
+    server_key: /certs/server.key
+    api_server: release-name-maira-api:443
+    max_message_size_bytes: 500000000
+    auth_url: "https://demo.maira.io/test"
+    auth_client_id: ""
+    auth_client_secret: ""
+    auth_audience: ""
+---
+# Source: maira/templates/api-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: release-name-maira-api
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+  name: release-name-maira-api
+spec:
+  selector:
+    app.kubernetes.io/name: release-name-maira-api
+    app.kubernetes.io/instance: release-name
+  ports:
+    - name: api
+      port: 443
+      protocol: TCP
+      targetPort: 11000
+  type: LoadBalancer
+---
+# Source: maira/templates/sitemanager-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: release-name-maira-sitemanager
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+  name: release-name-maira-sitemanager
+spec:
+  selector:
+    app.kubernetes.io/name: release-name-maira-sitemanager
+    app.kubernetes.io/instance: release-name
+  ports:
+    - name: sitemanager
+      port: 443
+      protocol: TCP
+      targetPort: 11000
+  type: LoadBalancer
+---
+# Source: maira/templates/ui-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: release-name-maira-ui
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+  name: release-name-maira-ui
+spec:
+  selector:
+    app.kubernetes.io/name: release-name-maira-ui
+    app.kubernetes.io/instance: release-name
+  ports:
+    - name: api
+      port: 443
+      protocol: TCP
+      targetPort: 3000
+  type: LoadBalancer
+---
+# Source: maira/templates/api-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-maira-api
+  labels:
+    app.kubernetes.io/name: release-name-maira-api
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: release-name-maira-api
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: release-name-maira-api
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: release-name-maira
+      containers:
+      - name:  api
+        image: "gcr.io/macro-context-293714/maira-apiserver:latest"
+        command: ["/apiserver"]
+        args: ["-c", "/config/config.yml"]
+        env:
+        - name: DB_URI
+          valueFrom:
+            secretKeyRef:
+              name: release-name-maira-db-uri-secret
+              key: db_uri
+        volumeMounts:
+        - name: config-yml
+          mountPath: "/config"
+          readOnly: true
+        - name: tls-cert
+          mountPath: "/certs"
+          readOnly: true
+        # This is needed to sync the k8s secret with gcp secrets
+      volumes:
+      - name: config-yml
+        configMap:
+          name: "release-name-maira-api-config"
+      - name: tls-cert
+        secret:
+          secretName: "release-name-maira-tls-secret"
+          items:
+            - key: tls.key
+              path: server.key
+            - key: tls.crt
+              path: server.crt
+---
+# Source: maira/templates/cloud-worker-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-maira-cloud-worker
+  labels:
+    app.kubernetes.io/name: release-name-maira-cloud-worker
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: release-name-maira-cloud-worker
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: release-name-maira-cloud-worker
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: release-name-maira
+      initContainers:
+      - name: init-temporal-namespace
+        image: "temporalio/admin-tools:1.13.1"
+        command: [
+          'sh',
+          '-xc',
+          "tctl --ns default namespace desc && \
+          (tctl --ns default namespace update --retention 30d && \
+              tctl --ns default namespace desc) || \
+            (tctl --ns default namespace register --retention 30d && \
+              tctl --ns default namespace desc)"
+        ]
+        env:
+        - name: TEMPORAL_CLI_ADDRESS
+          value: "temporaltest-frontend:7233"
+      containers:
+      - name:  cloud-worker
+        image: "gcr.io/macro-context-293714/maira-cloud-worker:latest"
+        env:
+          - name: SERVER_HOST_PORT
+            value: "temporaltest-frontend:7233"
+          - name: SITE_MANAGER_HOST_PORT
+            value: release-name-maira-sitemanager:443
+          - name: API_SERVER
+            value: release-name-maira-api:443
+          - name: CONFIRMATION_URL
+            value: "https://demo.maira.io/confirmation"
+          - name: EMAIL_TEMPLATE_ID
+            value: ""
+          - name: EMAIL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "release-name-maira-cloud-worker-secret"
+                key: email_password
+          - name: AUTH_URL
+            value: "https://demo.maira.io/test"
+          - name: AUTH_CLIENT_ID
+            value: ""
+          - name: AUTH_CLIENT_SECRET
+            value: ""
+          - name: AUTH_AUDIENCE
+            value: ""
+---
+# Source: maira/templates/sitemanager-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-maira-sitemanager
+  labels:
+    app.kubernetes.io/name: release-name-maira-sitemanager
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: release-name-maira-sitemanager
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: release-name-maira-sitemanager
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: release-name-maira
+      containers:
+      - name:  sitemanager
+        image: "gcr.io/macro-context-293714/site-manager:latest"
+        command: ["/site-manager"]
+        args: ["-c", "/config/config.yml"]
+        volumeMounts:
+        - name: config-yml
+          mountPath: "/config"
+          readOnly: true
+        - name: tls-cert
+          mountPath: "/certs"
+          readOnly: true
+      volumes:
+      - name: config-yml
+        configMap:
+          name: release-name-maira-sitemanager-config
+      - name: tls-cert
+        secret:
+          secretName: release-name-maira-tls-secret
+          items:
+            - key: tls.key
+              path: server.key
+            - key: tls.crt
+              path: server.crt
+---
+# Source: maira/templates/ui-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-maira-ui
+  labels:
+    app.kubernetes.io/name: release-name-maira-ui
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: release-name-maira-ui
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: release-name-maira-ui
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: release-name-maira
+      containers:
+      - name:  api
+        image: "gcr.io/macro-context-293714/maira-ui:latest"
+        env:
+          - name: HTTPS
+            value: "true"
+          - name: SSL_CRT_FILE
+            value: /certs/server.crt
+          - name : SSL_KEY_FILE
+            value: /certs/server.key
+        volumeMounts:
+        - name: tls-cert
+          mountPath: "/certs"
+          readOnly: true
+      volumes:
+      - name: tls-cert
+        secret:
+          secretName: "release-name-maira-tls-secret"
+          items:
+            - key: tls.key
+              path: server.key
+            - key: tls.crt
+              path: server.crt
+---
+# Source: maira/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "release-name-maira-api-test-connection"
+  labels:
+    app.kubernetes.io/name: release-name-maira-api
+    helm.sh/chart: maira-0.1.0
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: release-name-maira
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args:  ['release-name-maira-api:']
+  restartPolicy: Never

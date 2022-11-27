@@ -43,7 +43,7 @@ spec:
       volumes:
       - name: tls-cert
         secret:
-          secretName: "{{ template "maira.fullname" . }}-tls-secret"
+          secretName: "{{ if .Values.tls.existingSecret }}{{ .Values.tls.existingSecret }}{{ else }}{{ template "maira.fullname" . }}-tls-secret{{ end }}"
           items:
             - key: tls.key
               path: server.key
