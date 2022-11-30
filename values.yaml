@@ -1,5 +1,6 @@
 nameOverride: ""
 fullnameOverride: ""
+imagePullSecrets: "macro-context-293714"
 
 serviceAccount:
   # Specifies whether a service account should be created
