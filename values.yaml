@@ -34,7 +34,7 @@ gcp:
   # service_account:
 
 temporal:
-  host: temporaltest-frontend
+  host: temporal-frontend
   port: 7233
   enabled: false
 
