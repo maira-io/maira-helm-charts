@@ -151,6 +151,7 @@ ui:
   service:
     type: LoadBalancer
     servicePort: 443
+    httpPort: 80
 
 sitemanager:
   enabled: true

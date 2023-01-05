@@ -38,7 +38,16 @@ spec:
       port: {{ .Values.ui.service.servicePort }}
       {{- end }}
       protocol: TCP
-      targetPort: 3000
+      targetPort: 443
+    {{- if .Values.ui.service.nodePort }}
+      nodePort: {{ .Values.ui.service.nodePort }}
+    {{- end }}
+    - name: http-api
+      {{- if .Values.ui.service.httpPort }}
+      port: {{ .Values.ui.service.httpPort }}
+      {{- end }}
+      protocol: TCP
+      targetPort: 80
     {{- if .Values.ui.service.nodePort }}
       nodePort: {{ .Values.ui.service.nodePort }}
     {{- end }}
