@@ -10,8 +10,12 @@ data:
     grpc_listen_addr: :{{ .Values.api.grpcPort }}
     rest_listen_addr: :{{ .Values.api.apiPort }}
     max_message_size_bytes: 500000000
+    auth_disabled: {{ include "maira.api.auth_disabled" . }}
+    auth0_tenant: "{{ .Values.api.auth0_tenant }}"
     server_cert: /certs/server.crt
     server_key: /certs/server.key
+    default_tenant: "{{ .Values.api.default_tenant }}"
+    admin_user_email: "{{ .Values.api.admin_user_email }}"
     workflow_server: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
     slack:
       bot_server: "{{ .Values.slack.bot_server }}"
