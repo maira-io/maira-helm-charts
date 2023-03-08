@@ -146,3 +146,15 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
+
+
+{{/*
+Maira disable Auth for Development setup
+*/}}
+{{- define "maira.api.auth_disabled" -}}
+{{- if .Values.api.auth.enabled -}}
+false
+{{- else -}}
+true
+{{- end -}}
+{{- end -}}
