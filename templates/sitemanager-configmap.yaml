@@ -11,10 +11,6 @@ data:
     rest_listen_addr: :{{ .Values.sitemanager.apiPort }}
     server_cert: /certs/server.crt
     server_key: /certs/server.key
-    api_server: {{ template "maira.api.fullname" . }}:{{ .Values.api.service.servicePort }}
+    api_server: {{ template "maira.api.fullname" . }}-private:8000
     max_message_size_bytes: 500000000
-    auth_url: "{{ .Values.sitemanager.auth.url }}"
-    auth_client_id: "{{ .Values.sitemanager.auth.client_id }}"
-    auth_client_secret: "{{ .Values.sitemanager.auth.client_secret }}"
-    auth_audience: "{{ .Values.sitemanager.auth.audience }}"
 {{- end }}
