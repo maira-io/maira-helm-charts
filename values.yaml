@@ -67,6 +67,9 @@ api:
   replicaCount: 1
   apiPort: 11000
   grpcPort: 8000
+  auth:
+    enabled: true
+  auth0_tenant: maira-dev
   image:
     repository: gcr.io/macro-context-293714/maira-apiserver
     tag: latest
