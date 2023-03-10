@@ -46,9 +46,9 @@ spec:
           - name: SERVER_HOST_PORT
             value: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
           - name: SITE_MANAGER_HOST_PORT
-            value: {{ template "maira.sitemanager.fullname" . }}:{{ .Values.sitemanager.service.servicePort }}
+            value: {{ template "maira.sitemanager.fullname" . }}-private:8000
           - name: API_SERVER
-            value: {{ template "maira.api.fullname" . }}:{{ .Values.api.service.servicePort }}
+            value: {{ template "maira.api.fullname" . }}-private:8000
           - name: CONFIRMATION_URL
             value: "{{ .Values.cloud_worker.confirmation_url }}"
           - name: EMAIL_TEMPLATE_ID
@@ -58,12 +58,4 @@ spec:
               secretKeyRef:
                 name: "{{ template "maira.cloud_worker.fullname" . }}-secret"
                 key: email_password
-          - name: AUTH_URL
-            value: "{{ .Values.cloud_worker.auth.url }}"
-          - name: AUTH_CLIENT_ID
-            value: "{{ .Values.cloud_worker.auth.client_id }}"
-          - name: AUTH_CLIENT_SECRET
-            value: "{{ .Values.cloud_worker.auth.client_secret }}"
-          - name: AUTH_AUDIENCE
-            value: "{{ .Values.cloud_worker.auth.audience }}"
 {{- end }}
