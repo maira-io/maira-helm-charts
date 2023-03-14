@@ -10,6 +10,8 @@ data:
     grpc_listen_addr: :{{ .Values.sitemanager.grpcPort }}
     rest_listen_addr: :{{ .Values.sitemanager.apiPort }}
     auth0_tenant: "{{ .Values.api.auth0_tenant }}"
+    auth_disabled: {{ include "maira.api.auth_disabled" . }}
+    default_tenant: "{{ .Values.api.default_tenant }}"
     server_cert: /certs/server.crt
     server_key: /certs/server.key
     api_server: {{ template "maira.api.fullname" . }}-private:8000
