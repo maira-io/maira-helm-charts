@@ -19,8 +19,6 @@ data:
     workflow_server: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
     slack:
       bot_server: "{{ .Values.slack.bot_server }}"
-      maira_client_id: "{{ .Values.slack.maira_client_id }}"
-      maira_oauth_key: "{{ .Values.slack.maira_oauth_key }}"
       slack_client_id: "{{ .Values.slack.slack_client_id }}"
       slack_oauth_key: "{{ .Values.slack.slack_oauth_key }}"
       slack_signing_secret: "{{ .Values.slack.slack_signing_secret }}"
