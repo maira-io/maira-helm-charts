@@ -10,13 +10,27 @@ metadata:
     nginx.org/ssl-services: maira-ui
 spec:
   ingressClassName: nginx
-  tls:
-  - hosts:
-    - sample.maira.local
-    secretName: "{{ if .Values.tls.existingSecret }}{{ .Values.tls.existingSecret }}{{ else }}{{ template "maira.fullname" . }}-tls-secret{{ end }}"
   rules:
-  - host: sample.maira.local
+  - host: maira-ui.localdev.me
     http:
+      paths:
+      - backend:
+          service:
+            name: maira-ui
+            port:
+              number: 443
+        path: /
+        pathType: Prefix
+  - http:
+      paths:
+      - backend:
+          service:
+            name: maira-ui
+            port:
+              number: 443
+        path: /
+        pathType: Prefix
+  - http:
       paths:
       - backend:
           service:
@@ -31,12 +45,5 @@ spec:
             port:
               number: 443
         path: /swagger
-        pathType: Prefix
-      - backend:
-          service:
-            name: maira-ui
-            port:
-              number: 443
-        path: /
         pathType: Prefix
 {{- end }}
