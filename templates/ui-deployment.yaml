@@ -34,7 +34,7 @@ spec:
             value: /certs/server.key
           {{- range $env := .Values.ui.env}}
           - name: {{ $env.name }}
-            value: {{ $env.value -}}
+            value: "{{ $env.value -}}"
           {{- end }}
         volumeMounts:
         - name: tls-cert

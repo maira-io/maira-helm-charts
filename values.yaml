@@ -108,6 +108,8 @@ api:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+ingress:
+  enabled: false
 
 slack:
   bot_server: api.demo.maira.io:443

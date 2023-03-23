@@ -1,44 +1,42 @@
-{{/*
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "maira.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
-{{- else -}}
-apiVersion: extensions/v1beta1
-{{- end }}
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: maira-ui
   labels:
-{{ include "maira.labels" . | indent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.org/ssl-services: maira-ui
 spec:
-{{- if .Values.ingress.tls }}
+  ingressClassName: nginx
   tls:
-  {{- range .Values.ingress.tls }}
-    - hosts:
-      {{- range .hosts }}
-        - {{ . | quote }}
-      {{- end }}
-      secretName: {{ .secretName }}
-  {{- end }}
-{{- end }}
+  - hosts:
+    - sample.maira.local
+    secretName: "{{ if .Values.tls.existingSecret }}{{ .Values.tls.existingSecret }}{{ else }}{{ template "maira.fullname" . }}-tls-secret{{ end }}"
   rules:
-  {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
-        {{- range .paths }}
-          - path: {{ . }}
-            backend:
-              serviceName: {{ $fullName }}
-              servicePort: {{ $svcPort }}
-        {{- end }}
-  {{- end }}
+  - host: sample.maira.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: maira-api
+            port:
+              number: 443
+        path: /v1/
+        pathType: Prefix
+      - backend:
+          service:
+            name: maira-api
+            port:
+              number: 443
+        path: /swagger
+        pathType: Prefix
+      - backend:
+          service:
+            name: maira-ui
+            port:
+              number: 443
+        path: /
+        pathType: Prefix
 {{- end }}
-
-*/}}
