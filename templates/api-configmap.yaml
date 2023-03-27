@@ -22,5 +22,8 @@ data:
       slack_client_id: "{{ .Values.slack.slack_client_id }}"
       slack_oauth_key: "{{ .Values.slack.slack_oauth_key }}"
       slack_signing_secret: "{{ .Values.slack.slack_signing_secret }}"
+      socket_mode: "{{ .Values.slack.socket_mode }}"
+      slack_bot_token: "{{ .Values.slack.slack_bot_token }}"
+      slack_app_token: "{{ .Values.slack.slack_app_token }}"
       log_level: info
 {{- end }}
