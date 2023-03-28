@@ -19,7 +19,7 @@ spec:
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+      - name: {{ . }}
     {{- end }}
       serviceAccountName: {{ template "maira.serviceAccountName" . }}
       containers:
@@ -34,7 +34,7 @@ spec:
             value: /certs/server.key
           {{- range $env := .Values.ui.env}}
           - name: {{ $env.name }}
-            value: {{ $env.value -}}
+            value: "{{ $env.value -}}"
           {{- end }}
         volumeMounts:
         - name: tls-cert
@@ -43,7 +43,7 @@ spec:
       volumes:
       - name: tls-cert
         secret:
-          secretName: "{{ template "maira.fullname" . }}-tls-secret"
+          secretName: "{{ if .Values.tls.existingSecret }}{{ .Values.tls.existingSecret }}{{ else }}{{ template "maira.fullname" . }}-tls-secret{{ end }}"
           items:
             - key: tls.key
               path: server.key

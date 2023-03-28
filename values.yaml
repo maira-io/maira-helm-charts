@@ -1,9 +1,10 @@
 nameOverride: ""
 fullnameOverride: ""
+imagePullSecrets: "macro-context-293714"
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create: true
+  create: false
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
@@ -33,9 +34,9 @@ gcp:
   # service_account:
 
 temporal:
-  host: temporaltest-frontend
+  host: temporal-frontend
   port: 7233
-  enabled: true
+  enabled: false
 
 mongodb:
   # Either credential details like host, username, password or gcp.db_uri_secret_name
@@ -43,9 +44,12 @@ mongodb:
   #
   # host: cluster0.aq7of.mongodb.net
   # username: maira
-  # password: passw0rd
+  # password:
+  host:
   username:
   password:
+  # Existing secret with MongoDB credentials secret name coming from sealedSecrets, eg. mongodb-secret
+  existingSecret: maira-db-uri-secret
   gcp:
     db_uri_secret_name: 
 
@@ -59,6 +63,8 @@ tls:
     # cert_secret_name - tls cert secret name
     key_secret_name:
     cert_secret_name:
+  # Existing secret with tls crt and key secret name coming from sealedSecrets, eg. maira-tls-secret
+  existingSecret: maira-tls-secret
   # tls key and cert content
   key:
   cert:
@@ -102,6 +108,8 @@ api:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+ingress:
+  enabled: false
 
 slack:
   bot_server: api.demo.maira.io:443
@@ -131,8 +139,16 @@ cloud_worker:
     tag: latest
     pullPolicy: IfNotPresent
   confirmation_url: https://demo.maira.io/confirmation
+  email_template_id: d-09e71fe13d354a90aedf1bb8e733d8c7
   email:
-    password: qacohzczcdaacsjd
+    password: ""
+  auth:
+    #url: https://maira-dev.us.auth0.com/oauth/token
+    url: ""
+    client_id: ""
+    client_secret: ""
+    # audience: "https://api.maira-dev.maira.io/cloudWorker"
+    audience: ""
 
 testapp:
   enabled: true
@@ -169,3 +185,8 @@ sitemanager:
   service:
     type: LoadBalancer
     servicePort: 443
+  auth:
+    url: ""
+    client_id: ""
+    client_secret: ""
+    audience: ""
