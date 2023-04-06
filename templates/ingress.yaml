@@ -7,6 +7,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/grpc-backend: "false"
     nginx.org/ssl-services: maira-ui
 spec:
   ingressClassName: nginx
@@ -21,7 +22,8 @@ spec:
               number: 443
         path: /
         pathType: Prefix
-  - http:
+  - host: maira-ui.localdev.me
+    http:
       paths:
       - backend:
           service:
