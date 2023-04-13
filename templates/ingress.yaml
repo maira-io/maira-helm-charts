@@ -27,10 +27,10 @@ spec:
       paths:
       - backend:
           service:
-            name: maira-ui
+            name: maira-api
             port:
               number: 443
-        path: /
+        path: /v1/
         pathType: Prefix
   - http:
       paths:
@@ -40,6 +40,13 @@ spec:
             port:
               number: 443
         path: /v1/
+        pathType: Prefix
+      - backend:
+          service:
+            name: maira-api
+            port:
+              number: 443
+        path: /slack/
         pathType: Prefix
       - backend:
           service:
