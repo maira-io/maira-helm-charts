@@ -21,4 +21,14 @@ spec:
             name: maira-api
             port:
               number: 443
+  - host: maira-ui.localdev.me
+    http:
+      paths:
+      - backend:
+          service:
+            name: maira-api
+            port:
+              number: 443
+        path: /maira.
+        pathType: Prefix
 {{- end }}
