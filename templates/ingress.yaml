@@ -22,6 +22,15 @@ spec:
               number: 443
         path: /
         pathType: Prefix
+  - http:
+      paths:
+      - backend:
+          service:
+            name: maira-ui
+            port:
+              number: 443
+        path: /
+        pathType: Prefix
   - host: maira-ui.localdev.me
     http:
       paths:
