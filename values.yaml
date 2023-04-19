@@ -142,13 +142,6 @@ cloud_worker:
   email_template_id: d-09e71fe13d354a90aedf1bb8e733d8c7
   email:
     password: ""
-  auth:
-    #url: https://maira-dev.us.auth0.com/oauth/token
-    url: ""
-    client_id: ""
-    client_secret: ""
-    # audience: "https://api.maira-dev.maira.io/cloudWorker"
-    audience: ""
 
 testapp:
   enabled: true
@@ -185,8 +178,3 @@ sitemanager:
   service:
     type: LoadBalancer
     servicePort: 443
-  auth:
-    url: ""
-    client_id: ""
-    client_secret: ""
-    audience: ""
