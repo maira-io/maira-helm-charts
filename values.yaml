@@ -33,6 +33,7 @@ gcp:
   # GCP Service Account
   # service_account:
 
+external_host: maira.localdev.me
 temporal:
   host: temporal-frontend
   port: 7233

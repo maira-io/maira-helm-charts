@@ -21,7 +21,7 @@ spec:
             name: maira-api
             port:
               number: 443
-  - host: maira-ui.localdev.me
+  - host: {{ .Values.external_host }}
     http:
       paths:
       - backend:

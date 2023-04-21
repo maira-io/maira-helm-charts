@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: maira-ui.localdev.me
+  - host: {{ .Values.external_host }}
     http:
       paths:
       - backend:
@@ -31,7 +31,7 @@ spec:
               number: 443
         path: /
         pathType: Prefix
-  - host: maira-ui.localdev.me
+  - host: {{ .Values.external_host }}
     http:
       paths:
       - backend:
@@ -63,5 +63,24 @@ spec:
             port:
               number: 443
         path: /swagger
+        pathType: Prefix
+  - host: {{ .Values.external_host }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: maira-sitemanager
+            port:
+              number: 443
+        path: /ws
+        pathType: Prefix
+  - http:
+      paths:
+      - backend:
+          service:
+            name: maira-sitemanager
+            port:
+              number: 443
+        path: /ws
         pathType: Prefix
 {{- end }}
