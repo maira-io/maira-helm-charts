@@ -1,0 +1,62 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: maira
+  namespace: maira
+spec:
+  host: {{ .Values.external_host }}
+  tls:
+    secret: maira-tls-secret
+    redirect:
+      enable: true
+      code: 301
+      basedOn: x-forwarded-proto
+  upstreams:
+  - name: maira-ui
+    service: maira-ui
+    port: 443
+    tls:
+      enable: true
+  - name: maira-api
+    service: maira-api
+    port: 443
+    tls:
+      enable: true
+  - name: maira-grpc
+    service: maira-api
+    port: 443
+    type: grpc
+    tls:
+      enable: true
+  routes:
+  - path: /
+    matches:
+    - conditions:
+      - header: Content-Type
+        value: application/grpc
+      action:
+        pass: maira-grpc
+    action:
+      pass: maira-ui
+  - path: /v1/
+    action:
+      pass: maira-api
+  - path: /swagger
+    action:
+      pass: maira-api
+  - path: /events
+    matches:
+    - conditions:
+      - variable: $request_method
+        value: POST
+      action:
+        pass: maira-api
+    action:
+      pass: maira-ui
+  - path: /api/events
+    action:
+      proxy:
+        upstream: maira-api
+        rewritePath: /events
+{{- end }}
