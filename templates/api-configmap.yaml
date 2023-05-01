@@ -16,6 +16,8 @@ data:
     server_key: /certs/server.key
     default_tenant: "{{ .Values.api.default_tenant }}"
     admin_user_email: "{{ .Values.api.admin_user_email }}"
+    default_site: "{{ .Values.api.default_site }}"
+    default_site_key: "{{ .Values.api.default_site_key }}"
     workflow_server: "{{ .Values.temporal.host }}:{{ .Values.temporal.port }}"
     slack:
       bot_server: "{{ .Values.slack.bot_server }}"
